@@ -11,16 +11,9 @@ const ClientIdentity = require('fabric-shim').ClientIdentity;
 
 class fabcoin extends Contract {
 
-    async getState(ctx, id) {
-        // check whether the coin exists and who it belongs to 
-        const stateJSON = await ctx.stub.getState(id);
-        if (stateJSON && stateJSON.length > 0) {
-            return `UTXO: ${id} doesn't exist`;
-        }
-        return JSON.parse(stateJSON.toString());
-    }
-
     async mint(ctx, amount) {
+        console.info('============= START : MINT COINS ===========');
+
         let cid = new ClientIdentity(ctx.stub);
         const minter = cid.getID();
 
@@ -41,9 +34,15 @@ class fabcoin extends Contract {
             Amount: amount
         };
 
-        let utxoCompositeKey= ctx.stub.createCompositeKey("utxo", [minter, utxo.Key])
+        let utxoCompositeKey= minter + utxo.Key
 
+        console.log(utxoCompositeKey)
         await ctx.stub.putState(utxoCompositeKey, Buffer.from(JSON.stringify(utxo)));
+        
+        // await ctx.stub.putState("hello", "hi");
+        console.log(`Minted ${amount} to ${minter}`);
+
+        console.log(`${JSON.stringify(utxo)}`);
 
         return JSON.stringify(utxo)
     }
@@ -57,6 +56,7 @@ class fabcoin extends Contract {
      * @param {Array<[number, string]>} utxoOutputs - The new owners and amounts for the UTXOs to be created.
      */
     async spend(ctx, utxoInputKeys, utxoOutputs) {
+
         console.info('============= START : spend ===========');
 
         let cid = new ClientIdentity(ctx.stub);
@@ -122,13 +122,13 @@ class fabcoin extends Contract {
     
         
     }
+
     async getTransactions(ctx){
         // get the student id[]
         const allResults = [];
         // range query with empty string for startKey and endKey does an open-ended query of all assets in the chaincode namespace.
         const iterator = await ctx.stub.getStateByRange('', '');
         let result = await iterator.next();
-        
         while (!result.done) {
             const strValue = Buffer.from(result.value.value.toString()).toString('utf8');
             let record;
@@ -141,12 +141,9 @@ class fabcoin extends Contract {
             allResults.push(record);
             result = await iterator.next();
         }
-        let cid = new ClientIdentity(ctx.stub);
-        const caller = cid.getID();
-        console.log(`The caller of getTRansactions is the userID:${caller}`)
-
         return JSON.stringify(allResults);
     }
+
 
     /**
      * Retrieves the ID of the caller.
@@ -155,6 +152,14 @@ class fabcoin extends Contract {
      * @return {string} the ID of the caller
      */
 
+    async getState(ctx, id) {
+        // check whether the coin exists and who it belongs to 
+        const stateJSON = await ctx.stub.getState(id);
+        if (stateJSON && stateJSON.length > 0) {
+            return `UTXO: ${id} doesn't exist`;
+        }
+        return JSON.parse(stateJSON.toString());
+    }
     async getMyID(ctx) {
         let cid = new ClientIdentity(ctx.stub);
         const caller = cid.getID();
@@ -168,7 +173,7 @@ class fabcoin extends Contract {
 
 
         const allResults = [];
-        const iterator = ctx.stub.getStateByPartialCompositeKey("utxo", [owner]);
+        const iterator = ctx.stub.getStateByPartialCompositeKey("utxo", [caller]);
         let result = await iterator.next();
 
         while (!result.done) {
