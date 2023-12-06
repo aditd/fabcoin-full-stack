@@ -45,8 +45,25 @@ async function main() {
 
         // Get the contract from the network.
         const contract = network.getContract('fabcoin');
-        const result = await contract.evaluateTransaction('getTransactions');
-        console.log(`getTransactions has been evaluated, result is: ${result.toString()}`);
+
+        if (choice === "getTransactions") {
+            const result = await contract.evaluateTransaction('getTransactions');
+            console.log(`getTransactions has been evaluated, result is: ${result.toString()}`);
+        }
+
+        if (choice === "getMyID") {
+            const result = await contract.evaluateTransaction('getMyID');
+            console.log(`getTransactions has been evaluated, result is: ${result.toString()}`);
+        }
+        if (choice === "getClientUTXOs") {
+            const result = await contract.evaluateTransaction('getClientUTXOs');
+            console.log(`getTransactions has been evaluated, result is: ${result.toString()}`);
+        }  
+        if (choice === "getState") {
+            const result = await contract.evaluateTransaction('getState');
+            console.log(`getTransactions has been evaluated, result is: ${result.toString()}`);
+        }
+        
 
         // Evaluate the specified transaction.
         // queryMsg transaction - requires 1 argument, ex: ('queryMsg', 'MSG0')
