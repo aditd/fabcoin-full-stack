@@ -147,7 +147,7 @@ class fabcoin extends Contract {
 
         return JSON.stringify(allResults);
     }
-    
+
     /**
      * Retrieves the ID of the caller.
      *
