@@ -8,6 +8,8 @@
 
 const {Contract} = require('fabric-contract-api');
 const ClientIdentity = require('fabric-shim').ClientIdentity;
+const crypto = require('crypto');
+let users =[];
 
 class fabcoin extends Contract {
 
@@ -43,6 +45,7 @@ class fabcoin extends Contract {
         console.log(`Minted ${amount} to ${minter}`);
 
         console.log(`${JSON.stringify(utxo)}`);
+        users.push(minter)
 
         return JSON.stringify(utxo)
     }
@@ -66,20 +69,18 @@ class fabcoin extends Contract {
         let totalInputAmount = 0
 
         // take the keys(txid.j) and get the compositeKey
+        // Add all the input amounts and then check if these inputs really belong to the client
         for (const inputKey of utxoInputKeys){
             // get the utxo and parse it
-            let inputCompositeKey = ctx.stub.createCompositeKey("utxo", [spender, inputKey]);
-            // try this
-            const stateJSON = await ctx.stub.getState(inputCompositeKey);
+            let inputCompositeKey = spender + inputKey;
+            const exists = await this.assetExists(inputCompositeKey)
             let utxo = JSON.parse(stateJSON.toString());
             // Check if the owner is the spender(person calling the spend function))
-            if (utxo.Owner !== spender) {
+            if (!exists) {
                 throw new Error(`The spender ${spender} is not the owner of the UTXO ${inputKey}`);
             }
             // add the amount that the input has
             totalInputAmount += utxo.Amount
-            // delete that utxo
-            // ctx.GetStub().DelState(utxoInputCompositeKey)
         }
         // if any of the above input transactions don't belong to the spender, then this will stop running
         
@@ -92,21 +93,22 @@ class fabcoin extends Contract {
             }
             totalOutputAmount += amount;
         }
+
         if (totalInputAmount != totalOutputAmount) {
             throw new Error(`total utxoInput amount ${totalInputAmount} does not equal total utxoOutput amount ${totalOutputAmount}`)
         }
 
         // consume all the UTXOs that has been passed
         for (const inputKey of utxoInputKeys){
-            let inputCompositeKey = ctx.stub.createCompositeKey("utxo", [spender, inputKey]);
+            let inputCompositeKey = spender + inputKey;
             // get the utxo and parse it
             const stateJSON = await ctx.stub.getState(inputCompositeKey);
-            let utxo = JSON.parse(stateJSON.toString());
-            await ctx.stub.deleteState(inputKey)
+            await ctx.stub.deleteState(inputCompositeKey)
         }
 
         let counter = 0
         // there should be a list of (amount, owner)
+        // the owner needs to be a string
         for (const [amount, owner] of utxoOutputs) {
             // create a utxo and there should be one for each output
             const utxoOutput = {
@@ -115,12 +117,16 @@ class fabcoin extends Contract {
                 Amount: amount
             };
 
-            const utxoOutputCompositeKey = ctx.stub.createCompositeKey("utxo", [owner, utxoOutput.Key]);
+            const utxoOutputCompositeKey = owner + utxoOutput.Key
             await ctx.stub.putState(utxoOutputCompositeKey, Buffer.from(amount.toString()));
             counter +=1;
+            users.push(owner)
         }
-    
         
+    }
+    async assetExists(ctx, key) {
+        const asBytes = await ctx.stub.getState(key);
+        return (!!asBytes && asBytes.length > 0);
     }
 
     async getTransactions(ctx){
@@ -142,6 +148,10 @@ class fabcoin extends Contract {
             result = await iterator.next();
         }
         return JSON.stringify(allResults);
+    }
+
+    async getUsers(ctx){
+        return JSON.stringify(users);
     }
 
 
@@ -193,6 +203,12 @@ class fabcoin extends Contract {
         return JSON.stringify(allResults);
     }
 
+    async registerUser(ctx) {
+        let cid = new ClientIdentity();
+        const caller = cid.getID();
+        const clientMSPID = cid.getMSPID();
+        users.push(caller)
+    }
 }
 
 
