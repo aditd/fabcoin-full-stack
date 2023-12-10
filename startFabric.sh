@@ -28,5 +28,5 @@ rm -rf javascript/wallet/*
 pushd ../test-network
 ./network.sh down
 ./network.sh up createChannel -ca -s couchdb
-./network.sh deployCC -ccn fabcoin -ccv 2 -ccl ${CC_SRC_LANGUAGE} -ccp ${CC_SRC_PATH}
+./network.sh deployCC -ccn fabcoin -ccl ${CC_SRC_LANGUAGE} -ccp ${CC_SRC_PATH}
 popd

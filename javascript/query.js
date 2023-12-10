@@ -27,9 +27,14 @@ async function main() {
         const walletPath = path.join(process.cwd(), 'wallet');
         const wallet = await Wallets.newFileSystemWallet(walletPath);
         console.log(`Wallet path: ${walletPath}`);
+        console.log(`wallet ${wallet.get(userID)}`);
 
         // Check to see if we've already enrolled the user.
         const identity = await wallet.get(userID);
+        console.log(`wallet ${Object.getOwnPropertyNames(identity)}`);
+        
+        console.log(`${identity.credentials.certificate}`)
+
         if (!identity) {
             console.log(`An identity for the user ${userID} does not exist in the wallet`);
             console.log('Run the registerUser.js application before retrying');
@@ -45,8 +50,34 @@ async function main() {
 
         // Get the contract from the network.
         const contract = network.getContract('fabcoin');
-        const result = await contract.evaluateTransaction('getTransactions');
-        console.log(`getTransactions has been evaluated, result is: ${result.toString()}`);
+
+        if (choice === "getTransactions") {
+            const result = await contract.evaluateTransaction('getTransactions');
+            console.log(`getTransactions has been evaluated, result is: ${result.toString()}`);
+        }
+
+        if (choice === "testUserStuff") {
+            const result = await contract.evaluateTransaction('testUserStuff');
+            console.log(`getTransactions has been evaluated, result is: ${result.toString()}`);
+        }
+        if (choice === "getSign") {
+            const result = await contract.evaluateTransaction('getSign');
+            console.log(`getTransactions has been evaluated, result is: ${result.toString()}`);
+        }
+
+        if (choice === "getMyID") {
+            const result = await contract.evaluateTransaction('getMyID');
+            console.log(`getTransactions has been evaluated, result is: ${result.toString()}`);
+        }
+        if (choice === "getClientUTXOs") {
+            const result = await contract.evaluateTransaction('getClientUTXOs');
+            console.log(`getTransactions has been evaluated, result is: ${result.toString()}`);
+        }  
+        if (choice === "getState") {
+            const result = await contract.evaluateTransaction('getState');
+            console.log(`getTransactions has been evaluated, result is: ${result.toString()}`);
+        }
+        
 
         // Evaluate the specified transaction.
         // queryMsg transaction - requires 1 argument, ex: ('queryMsg', 'MSG0')

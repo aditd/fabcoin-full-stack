@@ -8,19 +8,16 @@
 
 const {Contract} = require('fabric-contract-api');
 const ClientIdentity = require('fabric-shim').ClientIdentity;
+const crypto = require('crypto');
+const jsa =  require('jsrsasign')
+let users =[];
+let minters =[];
 
 class fabcoin extends Contract {
 
-    async getState(ctx, id) {
-        // check whether the coin exists and who it belongs to 
-        const stateJSON = await ctx.stub.getState(id);
-        if (stateJSON && stateJSON.length > 0) {
-            return `UTXO: ${id} doesn't exist`;
-        }
-        return JSON.parse(stateJSON.toString());
-    }
+    async mint(ctx, amount, publicKey) {
+        console.info('============= START : MINT COINS ===========');
 
-    async mint(ctx, amount) {
         let cid = new ClientIdentity(ctx.stub);
         const minter = cid.getID();
 
@@ -38,13 +35,21 @@ class fabcoin extends Contract {
         const utxo = {
             Key: ctx.stub.getTxID() + ".0",
             Owner: minter,
-            Amount: amount
+            Amount: amount,
+            publicKey: publicKey // it belongs to this public key
         };
 
-        let utxoCompositeKey= ctx.stub.createCompositeKey("utxo", [minter, utxo.Key])
+        let utxoCompositeKey= minter + utxo.Key
 
+        console.log(utxoCompositeKey)
         await ctx.stub.putState(utxoCompositeKey, Buffer.from(JSON.stringify(utxo)));
+        
+        // await ctx.stub.putState("hello", "hi");
+        console.log(`Minted ${amount} to ${minter}`);
 
+        console.log(`${JSON.stringify(utxo)}`);
+        users.push(minter)
+        minters.push(minter)
         return JSON.stringify(utxo)
     }
 
@@ -57,6 +62,7 @@ class fabcoin extends Contract {
      * @param {Array<[number, string]>} utxoOutputs - The new owners and amounts for the UTXOs to be created.
      */
     async spend(ctx, utxoInputKeys, utxoOutputs) {
+
         console.info('============= START : spend ===========');
 
         let cid = new ClientIdentity(ctx.stub);
@@ -66,20 +72,21 @@ class fabcoin extends Contract {
         let totalInputAmount = 0
 
         // take the keys(txid.j) and get the compositeKey
+        // Add all the input amounts and then check if these inputs really belong to the client
         for (const inputKey of utxoInputKeys){
             // get the utxo and parse it
-            let inputCompositeKey = ctx.stub.createCompositeKey("utxo", [spender, inputKey]);
-            // try this
-            const stateJSON = await ctx.stub.getState(inputCompositeKey);
+            let inputCompositeKey = spender + inputKey;
+            const exists = await this.assetExists(inputCompositeKey)
             let utxo = JSON.parse(stateJSON.toString());
             // Check if the owner is the spender(person calling the spend function))
-            if (utxo.Owner !== spender) {
+            if (!exists) {
                 throw new Error(`The spender ${spender} is not the owner of the UTXO ${inputKey}`);
             }
+            // insure that all the public keys are the same
+            // the signature of the transaction shoul be verifiable by the public key in the inputs
+
             // add the amount that the input has
             totalInputAmount += utxo.Amount
-            // delete that utxo
-            // ctx.GetStub().DelState(utxoInputCompositeKey)
         }
         // if any of the above input transactions don't belong to the spender, then this will stop running
         
@@ -92,21 +99,22 @@ class fabcoin extends Contract {
             }
             totalOutputAmount += amount;
         }
+
         if (totalInputAmount != totalOutputAmount) {
             throw new Error(`total utxoInput amount ${totalInputAmount} does not equal total utxoOutput amount ${totalOutputAmount}`)
         }
 
         // consume all the UTXOs that has been passed
         for (const inputKey of utxoInputKeys){
-            let inputCompositeKey = ctx.stub.createCompositeKey("utxo", [spender, inputKey]);
+            let inputCompositeKey = spender + inputKey;
             // get the utxo and parse it
             const stateJSON = await ctx.stub.getState(inputCompositeKey);
-            let utxo = JSON.parse(stateJSON.toString());
-            await ctx.stub.deleteState(inputKey)
+            await ctx.stub.deleteState(inputCompositeKey)
         }
 
         let counter = 0
         // there should be a list of (amount, owner)
+        // the owner needs to be a string
         for (const [amount, owner] of utxoOutputs) {
             // create a utxo and there should be one for each output
             const utxoOutput = {
@@ -115,20 +123,25 @@ class fabcoin extends Contract {
                 Amount: amount
             };
 
-            const utxoOutputCompositeKey = ctx.stub.createCompositeKey("utxo", [owner, utxoOutput.Key]);
+            const utxoOutputCompositeKey = owner + utxoOutput.Key
             await ctx.stub.putState(utxoOutputCompositeKey, Buffer.from(amount.toString()));
             counter +=1;
+            users.push(owner)
         }
-    
         
     }
+    
+    async assetExists(ctx, key) {
+        const asBytes = await ctx.stub.getState(key);
+        return (!!asBytes && asBytes.length > 0);
+    }
+
     async getTransactions(ctx){
         // get the student id[]
         const allResults = [];
         // range query with empty string for startKey and endKey does an open-ended query of all assets in the chaincode namespace.
         const iterator = await ctx.stub.getStateByRange('', '');
         let result = await iterator.next();
-        
         while (!result.done) {
             const strValue = Buffer.from(result.value.value.toString()).toString('utf8');
             let record;
@@ -141,12 +154,13 @@ class fabcoin extends Contract {
             allResults.push(record);
             result = await iterator.next();
         }
-        let cid = new ClientIdentity(ctx.stub);
-        const caller = cid.getID();
-        console.log(`The caller of getTRansactions is the userID:${caller}`)
-
         return JSON.stringify(allResults);
     }
+
+    async getUsers(ctx){
+        return JSON.stringify(users);
+    }
+
 
     /**
      * Retrieves the ID of the caller.
@@ -155,6 +169,14 @@ class fabcoin extends Contract {
      * @return {string} the ID of the caller
      */
 
+    async getState(ctx, id) {
+        // check whether the coin exists and who it belongs to 
+        const stateJSON = await ctx.stub.getState(id);
+        if (stateJSON && stateJSON.length > 0) {
+            return `UTXO: ${id} doesn't exist`;
+        }
+        return JSON.parse(stateJSON.toString());
+    }
     async getMyID(ctx) {
         let cid = new ClientIdentity(ctx.stub);
         const caller = cid.getID();
@@ -168,7 +190,7 @@ class fabcoin extends Contract {
 
 
         const allResults = [];
-        const iterator = ctx.stub.getStateByPartialCompositeKey("utxo", [owner]);
+        const iterator = ctx.stub.getStateByPartialCompositeKey("utxo", [caller]);
         let result = await iterator.next();
 
         while (!result.done) {
@@ -188,6 +210,39 @@ class fabcoin extends Contract {
         return JSON.stringify(allResults);
     }
 
+    async registerUser(ctx) {
+        let cid = new ClientIdentity();
+        const caller = cid.getID();
+        const clientMSPID = cid.getMSPID();
+        users.push(caller)
+    }
+    async testUserStuff(ctx){
+        let cid = new ClientIdentity();
+        const caller = cid.getID();
+        // cid.getAttributeValue()
+        // let x509bytes = cid.getIDBytes()
+        // ctx.stub.getArgs()
+        let signature = new SignedProposal().signature
+        let creator = new ProposalCreator().id_bytes
+        const someData = {
+            Signature: signature,
+            Creator: id_bytes
+        }
+        // console.log(`X.509 bytes\n ${x509bytes}`)
+        return JSON.stringify(someData)
+    }
+    
+    async getSign(ctx){
+        let cid = new ClientIdentity();
+        const caller = cid.getID();
+        // cid.getAttributeValue()
+        // let x509bytes = cid.getIDBytes()
+        // ctx.stub.getArgs()
+        let signature = new SignedProposal().signature
+        
+        // console.log(`X.509 bytes\n ${x509bytes}`)
+        return signature
+    }
 }
 
 
