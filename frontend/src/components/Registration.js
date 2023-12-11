@@ -1,6 +1,10 @@
+import React from 'react';
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+//import Dashboard from './Dashboard';
  
 export default function Form() {
+    const navigate = useNavigate();
     // States for registration
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
@@ -29,7 +33,7 @@ export default function Form() {
         setSubmitted(false);
     };
   
-    // Handling the password change
+    // Handling the access change
     const handleAccess = (e) => {
         setAccess(e.target.value);
         setSubmitted(false);
@@ -38,14 +42,22 @@ export default function Form() {
     // Handling the form submission
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (name === "" || email === "" || password === "") {
+        if (name === "" || email === "" || password === ""|| access === "") {
             setError(true);
-        } else {
+        } 
+        else{
             setSubmitted(true);
             setError(false);
+            // Redirect based on the access type
+            if (access === "owner") {
+                navigate('/Dashboard', {state: {usertype: 'owner'}});
+            } else if (access === "user") {
+                navigate('/Dashboard', {state: {usertype: 'user'}});
+            }
         }
     };
  
+
     // Showing success message
     const successMessage = () => {
         return (
@@ -55,7 +67,7 @@ export default function Form() {
                     display: submitted ? "" : "none",
                 }}
             >
-                <h1>User {name} successfully registered!!</h1>
+                <h1>{access} {name} successfully registered!!</h1>
             </div>
         );
     };

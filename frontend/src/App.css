@@ -3,7 +3,7 @@
   font-weight: bold;
   width: 100vw;
   height: 100vh;
-  background-image: url(../public/bank.png) ;
+  background-image: url(./assets/bank.png) ;
   background-size: 100%;
   background-size: cover;
   background-attachment: fixed;

@@ -7,6 +7,8 @@ import Layout from './components/Layout'
 import FabcoinWallet from './components/FabcoinWallet';
 import FabcoinTransaction from './components/FabcoinTransaction';
 import Registration from "./components/Registration"
+import Dashboard from './components/Dashboard'
+//import TransactionList from './components/TransactionList';
 function App() {
   return (
     <> 
@@ -15,9 +17,11 @@ function App() {
         <Routes>
           <Route path="/" element={<Layout />}>
           <Route index element={<Home />}/>
+          <Route exact path="/Dashboard" element={<Dashboard />}/>
           <Route exact path="/FabcoinWallet" element={<FabcoinWallet/>} />
           <Route exact path="/Fabcointransaction" element={<FabcoinTransaction/>} />
           <Route exact path="/Registration" element={<Registration />}/>
+          
           </Route>
         </Routes>
       </Router>
@@ -28,7 +32,7 @@ function App() {
 
 
 export default App;
-
+//<Route exact path="/TransactionList" element={<TransactionList />}/>
 //<Registration/>
 //<FabcoinWallet />
 //<FabcoinTransaction />
