@@ -14,11 +14,15 @@ const TransactionList = () => {
   return (
     <div>
       <h2>Transaction List</h2>
-      <ul>
-        {transactions.map(transaction => (
-          <li key={transaction.id}>{transaction.description}</li>
-        ))}
-      </ul>
+      {transactions.length === 0 ? (
+        <p>No UTXO transactions available.</p>
+      ) : (
+        <ul>
+          {transactions.map((transaction) => (
+            <li key={transaction.id}>{transaction.description}</li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };
