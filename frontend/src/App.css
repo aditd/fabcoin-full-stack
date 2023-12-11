@@ -34,10 +34,17 @@
   margin: 2px;
 
 }
+.centered {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 10vh; /* Adjust this if needed */
+}
 
 .btn {
-  color: white;
-  background-color: red;
+  color: black;
+  background-color: white;
   border-radius: 5px;
   font-size: larger;
   display: block;

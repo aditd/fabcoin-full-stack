@@ -4,8 +4,8 @@ const getWalletBalance = async () => {
   };
   
 const initiateTransaction = async (transactionDetails) => {
-// Implement transaction initiation logic (e.g., make API request)
-console.log('Transaction initiated:', transactionDetails);
+  // Implement transaction initiation logic (e.g., make API request)
+  console.log('Transaction initiated:', transactionDetails);
 };
   
-  export { getWalletBalance, initiateTransaction };
+export { getWalletBalance, initiateTransaction };

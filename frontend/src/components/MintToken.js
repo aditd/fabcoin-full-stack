@@ -5,15 +5,23 @@ const MintTokens = () => {
 
   const handleMint = () => {
     // Implement logic to call the mint function in your smart contract
-    console.log(`Minting ${amount} tokens`);
+    console.log('Minting Fabcoins:', amount);
+
+  };
+  const handleAmountChange = (e) => {
+    // Implement logic to call the mint function in your smart contract
+    const value = parseFloat(e.target.value);
+    setAmount(value >= 0 ? value : 0);
   };
 
   return (
-    <div>
-      <h2>Mint Tokens</h2>
-      <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} />
-      <button onClick={handleMint}>Mint</button>
-    </div>
+    <div className="centered">
+    <label>
+      Enter the amount of Fabcoins to mint:
+      <input type="number" value={amount} onChange={handleAmountChange}/>
+    </label>
+    <button className="btn" onClick={handleMint}>Submit</button>
+  </div>
   );
 };
 
