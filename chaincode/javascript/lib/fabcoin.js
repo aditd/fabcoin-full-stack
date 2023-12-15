@@ -15,7 +15,7 @@ let minters =[];
 
 class fabcoin extends Contract {
 
-    async mint(ctx, amount, publicKey) {
+    async mint(ctx, amount) {
         console.info('============= START : MINT COINS ===========');
 
         let cid = new ClientIdentity(ctx.stub);
@@ -36,7 +36,6 @@ class fabcoin extends Contract {
             Key: ctx.stub.getTxID() + ".0",
             Owner: minter,
             Amount: amount,
-            publicKey: publicKey // it belongs to this public key
         };
 
         let utxoCompositeKey= minter + utxo.Key
@@ -216,33 +215,33 @@ class fabcoin extends Contract {
         const clientMSPID = cid.getMSPID();
         users.push(caller)
     }
-    async testUserStuff(ctx){
-        let cid = new ClientIdentity();
-        const caller = cid.getID();
-        // cid.getAttributeValue()
-        // let x509bytes = cid.getIDBytes()
-        // ctx.stub.getArgs()
-        let signature = new SignedProposal().signature
-        let creator = new ProposalCreator().id_bytes
-        const someData = {
-            Signature: signature,
-            Creator: id_bytes
-        }
-        // console.log(`X.509 bytes\n ${x509bytes}`)
-        return JSON.stringify(someData)
-    }
+    // async testUserStuff(ctx){
+    //     let cid = new ClientIdentity();
+    //     const caller = cid.getID();
+    //     // cid.getAttributeValue()
+    //     // let x509bytes = cid.getIDBytes()
+    //     // ctx.stub.getArgs()
+    //     let signature = new SignedProposal().signature
+    //     let creator = new ProposalCreator().id_bytes
+    //     const someData = {
+    //         Signature: signature,
+    //         Creator: id_bytes
+    //     }
+    //     // console.log(`X.509 bytes\n ${x509bytes}`)
+    //     return JSON.stringify(someData)
+    // }
     
-    async getSign(ctx){
-        let cid = new ClientIdentity();
-        const caller = cid.getID();
-        // cid.getAttributeValue()
-        // let x509bytes = cid.getIDBytes()
-        // ctx.stub.getArgs()
-        let signature = new SignedProposal().signature
+    // async getSign(ctx){
+    //     let cid = new ClientIdentity();
+    //     const caller = cid.getID();
+    //     // cid.getAttributeValue()
+    //     // let x509bytes = cid.getIDBytes()
+    //     // ctx.stub.getArgs()
+    //     let signature = new SignedProposal().signature
         
-        // console.log(`X.509 bytes\n ${x509bytes}`)
-        return signature
-    }
+    //     // console.log(`X.509 bytes\n ${x509bytes}`)
+    //     return signature
+    // }
 }
 
 

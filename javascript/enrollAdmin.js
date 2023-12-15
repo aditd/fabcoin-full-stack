@@ -22,7 +22,6 @@ async function main() {
 	try {
 		// build an in memory object with the network configuration (also known as a connection profile)
 		const ccp = buildCCPOrg1();
-
 		// build an instance of the fabric ca services client based on
 		// the information in the network configuration
 		const caClient = buildCAClient(FabricCAServices, ccp, 'ca.org1.example.com');
