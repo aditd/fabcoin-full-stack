@@ -60,43 +60,60 @@ class fabcoin extends Contract {
      * @param {Array<string>} utxoInputKeys - The keys of the UTXOs to be spent.
      * @param {Array<[number, string]>} utxoOutputs - The new owners and amounts for the UTXOs to be created.
      */
-    async spend(ctx, utxoInputKeys, utxoOutputs) {
+    async spend(ctx, spendDataJson) {
 
         console.info('============= START : spend ===========');
 
         let cid = new ClientIdentity(ctx.stub);
         let spender = cid.getID();
         console.log(`The person trying to spend is ${spender}`); // should be the public key orx.509 certificate
+        const spendData = JSON.parse(spendDataJson);
+        const utxoInputKeysJson = spendData.utxoInputKeys;
+        const utxoOutputsJson = spendData.utxoOutputs;
 
+
+        // console.log(utxoInputKeys)
+        // console.log(utxoOutputs)
         let totalInputAmount = 0
 
         // take the keys(txid.j) and get the compositeKey
-        // Add all the input amounts and then check if these inputs really belong to the client
-        for (const inputKey of utxoInputKeys){
+        // // Add all the input amounts and then check if these inputs really belong to the client
+        // console.log(typeof utxoInputKeys, utxoInputKeys);
+        // console.log(typeof utxoOutputs, utxoOutputs);
+
+        // const utxoInputKeysJson = JSON.parse(utxoInputKeys);
+        // const utxoOutputsJson = JSON.parse(utxoOutputs);
+
+        // console.log(typeof utxoInputKeysJson, utxoInputKeysJson);
+        // console.log(typeof utxoOutputsJson, utxoOutputsJson);
+
+        for (const inputKey of utxoInputKeysJson){
+            console.log(`THe input key is ${inputKey}`)
             // get the utxo and parse it
             let inputCompositeKey = spender + inputKey;
-            const exists = await this.assetExists(inputCompositeKey)
-            let utxo = JSON.parse(stateJSON.toString());
+            const exists = await this.assetExists(ctx, inputCompositeKey)
+            // let utxo = JSON.parse(stateJSON.toString());
             // Check if the owner is the spender(person calling the spend function))
             if (!exists) {
                 throw new Error(`The spender ${spender} is not the owner of the UTXO ${inputKey}`);
             }
             // insure that all the public keys are the same
             // the signature of the transaction shoul be verifiable by the public key in the inputs
-
+            const utxoJSON = await ctx.stub.getState(inputCompositeKey);
+            const utxo = JSON.parse(utxoJSON.toString());
             // add the amount that the input has
-            totalInputAmount += utxo.Amount
+            totalInputAmount += parseInt(utxo.Amount,10)
         }
         // if any of the above input transactions don't belong to the spender, then this will stop running
-        
+        console.log(`Total Amount being spent is ${totalInputAmount}`);
         let totalOutputAmount = 0;
         // check the amount that needs to be spent
         // if the amount is not equal, then it will throw an error
-        for (const [amount, owner] of utxoOutputs) {
-            if (amount<=0){
+        for (const [amount, owner] of utxoOutputsJson) {
+            if (parseInt(amount,10)<=0){
                 throw new Error(`utxo output amount must be a positive integer `);
             }
-            totalOutputAmount += amount;
+            totalOutputAmount += parseInt(amount,10);
         }
 
         if (totalInputAmount != totalOutputAmount) {
@@ -104,7 +121,7 @@ class fabcoin extends Contract {
         }
 
         // consume all the UTXOs that has been passed
-        for (const inputKey of utxoInputKeys){
+        for (const inputKey of utxoInputKeysJson){
             let inputCompositeKey = spender + inputKey;
             // get the utxo and parse it
             const stateJSON = await ctx.stub.getState(inputCompositeKey);
@@ -114,18 +131,18 @@ class fabcoin extends Contract {
         let counter = 0
         // there should be a list of (amount, owner)
         // the owner needs to be a string
-        for (const [amount, owner] of utxoOutputs) {
+        for (const [amount, owner] of utxoOutputsJson) {
             // create a utxo and there should be one for each output
             const utxoOutput = {
                 Key: ctx.stub.getTxID() + `.${counter}`,
-                Owner: spender,
+                Owner: owner,
                 Amount: amount
             };
 
             const utxoOutputCompositeKey = owner + utxoOutput.Key
-            await ctx.stub.putState(utxoOutputCompositeKey, Buffer.from(amount.toString()));
+            await ctx.stub.putState(utxoOutputCompositeKey, Buffer.from(JSON.stringify(utxoOutput)));
             counter +=1;
-            users.push(owner)
+            // users.push(owner)
         }
         
     }
@@ -157,7 +174,7 @@ class fabcoin extends Contract {
     }
 
     async getUsers(ctx){
-        return JSON.stringify(users);
+        return JSON.stringify(users.toString());
     }
 
 
@@ -210,38 +227,19 @@ class fabcoin extends Contract {
     }
 
     async registerUser(ctx) {
-        let cid = new ClientIdentity();
+        let cid = new ClientIdentity(ctx.stub);
         const caller = cid.getID();
         const clientMSPID = cid.getMSPID();
-        users.push(caller)
+        // Check if the user already exists
+        if (users.includes(caller)) {
+            throw new Error(`User with ID ${caller} already exists`);
+        }else {
+            // Add the new user
+            users.push(caller);
+            // Return a success message
+            return `User with ID ${caller} registered successfully`;
+        }
     }
-    // async testUserStuff(ctx){
-    //     let cid = new ClientIdentity();
-    //     const caller = cid.getID();
-    //     // cid.getAttributeValue()
-    //     // let x509bytes = cid.getIDBytes()
-    //     // ctx.stub.getArgs()
-    //     let signature = new SignedProposal().signature
-    //     let creator = new ProposalCreator().id_bytes
-    //     const someData = {
-    //         Signature: signature,
-    //         Creator: id_bytes
-    //     }
-    //     // console.log(`X.509 bytes\n ${x509bytes}`)
-    //     return JSON.stringify(someData)
-    // }
-    
-    // async getSign(ctx){
-    //     let cid = new ClientIdentity();
-    //     const caller = cid.getID();
-    //     // cid.getAttributeValue()
-    //     // let x509bytes = cid.getIDBytes()
-    //     // ctx.stub.getArgs()
-    //     let signature = new SignedProposal().signature
-        
-    //     // console.log(`X.509 bytes\n ${x509bytes}`)
-    //     return signature
-    // }
 }
 
 

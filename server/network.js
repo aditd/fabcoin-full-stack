@@ -5,29 +5,30 @@ const { Gateway, Wallets } = require('fabric-network');
 const fs = require('fs');
 const path = require('path');
 const FabricCAServices = require('fabric-ca-client');
-const { FileSystemWallet, Gateway, X509WalletMixin } = require('fabric-network');
-const { buildCAClient, registerAndEnrollUser, enrollAdmin } = require('../javascript/CAUtil.js');
-const { buildCCPOrg1, buildWallet } = require('../javascript/AppUtil.js');
+const { FileSystemWallet, X509WalletMixin } = require('fabric-network');
+const { buildCAClient, registerAndEnrollUser, enrollAdmin } = require('./javascript/CAUtil.js');
+const { buildCCPOrg1,buildCCPOrg2, buildWallet } = require('./javascript/AppUtil.js');
 
 
-const minter_addr="https://localhost:7054"
+// const minter_addr="https://localhost:7054"
 // const ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
 
 async function getConnectionMaterial(isOrg1, isOrg2, userID) {
     const connectionMaterial = {};
     let ccpPath;
     if(isOrg1){
-        ccpPath = path.resolve(__dirname, '..', '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
+        ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org1.example.com', 'connection-org1.json');
         connectionMaterial.orgMSPID = "Org1MSP"
     }
     if(isOrg2){
-        ccpPath = path.resolve(__dirname, '..', '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org2.example.com', 'connection-org2.json');
+        ccpPath = path.resolve(__dirname, '..', '..', 'test-network', 'organizations', 'peerOrganizations', 'org2.example.com', 'connection-org2.json');
         connectionMaterial.orgMSPID = "Org2MSP"
     }
-    
+    console.log(`Current process working directory: ${process.cwd()}`);
+    const walletPath = path.join(process.cwd(), 'wallet');
     let ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
     // Create a new file system based wallet for managing identities.
-    const walletPath = path.join(process.cwd(), 'wallet');
+    // const walletPath = path.join(__dirname, 'wallet');
     
     connectionMaterial.connection = ccp
     connectionMaterial.walletPath = walletPath
@@ -36,42 +37,39 @@ async function getConnectionMaterial(isOrg1, isOrg2, userID) {
 }
 
 exports.connect = async (isOrg1, isOrg2, isMinter, userID) => {
+    console.log(`\n\N *** CONNECTING ***\n`)
     const gateway = new Gateway();
 
     try {
         const { walletPath, connection } = await getConnectionMaterial(isOrg1, isOrg2, userID);
-
+        
         const wallet = await Wallets.newFileSystemWallet(walletPath);
-        const userExists = await wallet.exists(userID);
-        if (!userExists) {
-            console.error(`An identity for the user ${userID} does not exist in the wallet. Register ${userID} first`);
-            return { status: 401, error: 'User identity does not exist in the wallet.' };
-        }
 
         await gateway.connect(connection, { wallet, identity: userID,
-            discovery: { enabled: true, asLocalhost: Boolean(process.env.AS_LOCALHOST) },
+            discovery: { enabled: true, asLocalhost: true },
         });
         const network = await gateway.getNetwork('mychannel');
         const contract = await network.getContract('fabcoin');
-        console.log('Connected to fabric network successly.');
+        console.log('Connected to fabric network successfully.');
 
         const networkObj = { gateway, network, contract };
 
         return networkObj;
     } catch (err) {
-        console.error(`Fail to connect network: ${err}`);
+        console.error(`\nFail to connect network: ${err}`);
         await gateway.disconnect();
         return { status: 500, error: err.toString() };
     }
 };
 
 exports.query = async (networkObj, ...funcAndArgs) => {
+    console.log(`\n\N *** QUERYING: ${funcAndArgs} ***\n`)
     try {
         console.log(`Query parameter: ${funcAndArgs}`);
         const funcAndArgsStrings = funcAndArgs.map(elem => String(elem));
         const response = await networkObj.contract.evaluateTransaction(...funcAndArgsStrings);
-        console.log(`Transaction ${funcAndArgs} has been evaluated: ${response}`);
-        return JSON.parse(response);
+        console.log(`Transaction ${funcAndArgs} has been evaluated: ${response.toString()}`);
+        return response.toString();
     } catch (err) {
         console.error(`Failed to evaluate transaction: ${err}`);
         return { status: 500, error: err.toString() };
@@ -83,13 +81,14 @@ exports.query = async (networkObj, ...funcAndArgs) => {
 };
 
 exports.invoke = async (networkObj, ...funcAndArgs) => {
+    console.log(`\n\N *** INVOKING: ${funcAndArgs} ***\n`)
     try {
         console.log(`Invoke parameter: ${funcAndArgs}`);
         const funcAndArgsStrings = funcAndArgs.map(elem => String(elem));
         const response = await networkObj.contract.submitTransaction(...funcAndArgsStrings);
-        console.log(`Transaction ${funcAndArgs} has been submitted: ${response}`);
+        console.log(`Transaction ${funcAndArgs} has been submitted: ${response.toString()}`);
 
-        return JSON.parse(response);
+        return JSON.parse(response.toString());
     } catch (err) {
         console.error(`Failed to submit transaction: ${err}`);
         return { status: 500, error: err.toString() };
@@ -102,6 +101,7 @@ exports.invoke = async (networkObj, ...funcAndArgs) => {
 
 
 exports.enrollAdmin = async (isOrg1, isOrg2) => {
+    console.log(`\n\N *** ADMIN ENROLLMENT ***\n`)
     const mspOrg1 = 'Org1MSP';
     const mspOrg2 = 'Org2MSP';
     const walletPath = path.join(__dirname, 'wallet');
@@ -142,6 +142,7 @@ exports.enrollAdmin = async (isOrg1, isOrg2) => {
 }
 
 exports.registerAndEnrollUser = async (isOrg1, isOrg2, userID) => {
+    console.log(`\n\N *** REGISTER AND ENROLLING USER: ${userID} ***\n`)
     const mspOrg1 = 'Org1MSP';
     const mspOrg2 = 'Org2MSP';
     const walletPath = path.join(__dirname, 'wallet');
@@ -180,5 +181,4 @@ exports.registerAndEnrollUser = async (isOrg1, isOrg2, userID) => {
             process.exit(1);
         }
     }
-
 }

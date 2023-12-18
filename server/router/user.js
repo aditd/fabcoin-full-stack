@@ -1,6 +1,9 @@
-
 const userRouter = require('express').Router();
-const controller = require('../controllers/entity.js');
+const controller = require('../controller/user.js');
 
-userRouter.post('/', controller.registerUser);
-userRouter.get('/', controller.getUsers);
+userRouter.post('/register/', controller.registerUser);
+userRouter.get('/get-users/', controller.getUsers);
+
+
+
+module.exports = userRouter;

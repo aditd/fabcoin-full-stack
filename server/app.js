@@ -3,8 +3,8 @@ const app = express()
 const port = 3000
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const router = require('./routes/index.js');
-
+const router = require('./router/index.js');
+const network = require('./network.js')
 
 async function main() {
     await network.enrollAdmin(true, false);
