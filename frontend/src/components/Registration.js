@@ -7,7 +7,6 @@ export default function Form() {
     const navigate = useNavigate();
     // States for registration
     const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [access, setAccess] = useState("");
  
@@ -18,12 +17,6 @@ export default function Form() {
     // Handling the name change
     const handleName = (e) => {
         setName(e.target.value);
-        setSubmitted(false);
-    };
- 
-    // Handling the email change
-    const handleEmail = (e) => {
-        setEmail(e.target.value);
         setSubmitted(false);
     };
  
@@ -42,7 +35,7 @@ export default function Form() {
     // Handling the form submission
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (name === "" || email === "" || password === ""|| access === "") {
+        if (name === "" || password === ""|| access === "") {
             setError(true);
         } 
         else{
@@ -108,14 +101,6 @@ export default function Form() {
                     type="text"
                 />
  
-                <label className="label">Email</label>
-                <input
-                    onChange={handleEmail}
-                    className="input"
-                    value={email}
-                    type="email"
-                />
- 
                 <label className="label">Password</label>
                 <input
                     onChange={handlePassword}
@@ -124,13 +109,15 @@ export default function Form() {
                     type="password"
                 />
 
-                <label className="label">How do you want to access the application?
-                <select value={access} onChange={handleAccess}>
-                <option value="">-- Select --</option>
-                <option value="owner">Owner</option>
-                <option value="user">User</option>
+                <div className="select-container">
+                <label className="label">Choose your organization?</label>
+                <select className="select-dropdown" value={access} onChange={handleAccess}>
+                    <option value="">-- Select --</option>
+                    <option value="owner">Org 1</option>
+                    <option value="user">Org 2</option>
                 </select>
-                </label>
+                </div>
+                
  
                 <button onClick={handleSubmit} className="btn" type="submit">
                     Submit
@@ -140,3 +127,10 @@ export default function Form() {
     );
 }
 
+//<label className="label">Choose your organization?
+//                <select value={access} onChange={handleAccess}>
+//                <option value="">-- Select --</option>
+//               <option value="owner">Org 1</option>
+//                <option value="user">Org 2</option>
+//                </select>
+//                </label>

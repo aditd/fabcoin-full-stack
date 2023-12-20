@@ -1,24 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+//import axios from 'axios';
 
 const TransactionList = () => {
-  const [transactions, setTransactions] = useState([]);
-
+  const [TXID, setTXID] = useState([]);
   useEffect(() => {
-    // Fetch transactions from your Node.js backend
-    axios.get('http://localhost:3001/transactions')
-      .then(response => setTransactions(response.data))
-      .catch(error => console.error('Error fetching transactions:', error));
+    // Fetch transactions from the backend API
+    const fetchTXID = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/token/get-all-tokens/');
+        const data = await response.json();
+        setTXID(data); // Update the state with fetched transactions
+      } catch (error) {
+        console.error('Error fetching transactions:', error);
+      }
+    };
+
+    fetchTXID();
   }, []);
+
 
   return (
     <div>
       <h2>Transaction List</h2>
-      {transactions.length === 0 ? (
+      {TXID.length === 0 ? (
         <p>No UTXO transactions available.</p>
       ) : (
         <ul>
-          {transactions.map((transaction) => (
+          {TXID.map((transaction) => (
             <li key={transaction.id}>{transaction.description}</li>
           ))}
         </ul>
@@ -29,22 +37,3 @@ const TransactionList = () => {
 
 export default TransactionList;
 
-//import React, { useEffect, useState } from 'react';
-
-//const TransactionList = () => {
-//  const [transactions, setTransactions] = useState([]);
-
-//  useEffect(() => {
-    // Implement logic to fetch transactions from your smart contract
-//    console.log('Fetching transactions');
-//  }, []);
-
-//  return (
-//    <div>
-//      <h2>Transaction List</h2>
-//      {/* Display the list of transactions */}
-//    </div>
-//  );
-//};
-
-//export default TransactionList;

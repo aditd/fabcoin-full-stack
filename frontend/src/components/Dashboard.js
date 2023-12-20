@@ -23,7 +23,7 @@ const Dashboard = () => {
       <h2>
         {location.state.usertype === "owner"
           ? "Owner Dashboard"
-          : "User Dashboard"}
+          : (location.state.usertype === null ?"Go register first":"User Dashboard")}
       </h2>
       {location.state.usertype === "owner" ? (
         <>
