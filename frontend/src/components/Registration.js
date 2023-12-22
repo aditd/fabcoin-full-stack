@@ -6,10 +6,10 @@ import { useNavigate } from "react-router-dom";
 export default function Form() {
     const navigate = useNavigate();
     // States for registration
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
+    const [userID, setName] = useState("");
     const [password, setPassword] = useState("");
-    const [access, setAccess] = useState("");
+    const [isOrg1, setIsOrg1] = useState(false);
+    const [isOrg2, setIsOrg2] = useState(false);
  
     // States for checking the errors
     const [submitted, setSubmitted] = useState(false);
@@ -21,38 +21,59 @@ export default function Form() {
         setSubmitted(false);
     };
  
-    // Handling the email change
-    const handleEmail = (e) => {
-        setEmail(e.target.value);
-        setSubmitted(false);
-    };
- 
     // Handling the password change
     const handlePassword = (e) => {
         setPassword(e.target.value);
         setSubmitted(false);
     };
-  
-    // Handling the access change
-    const handleAccess = (e) => {
-        setAccess(e.target.value);
+
+    const handleOrg1Change = () => {
+        setIsOrg1(!isOrg1);
         setSubmitted(false);
-    };
+      };
+    
+      const handleOrg2Change = () => {
+        setIsOrg2(!isOrg2);
+        setSubmitted(false);
+      };
+  
 
     // Handling the form submission
-    const handleSubmit = (e) => {
+    const handleSubmit = async(e) => {
         e.preventDefault();
-        if (name === "" || email === "" || password === ""|| access === "") {
+        if (userID === "" || password === ""|| (!isOrg1 && !isOrg2)) {
             setError(true);
         } 
         else{
             setSubmitted(true);
             setError(false);
             // Redirect based on the access type
-            if (access === "owner") {
-                navigate('/Dashboard', {state: {usertype: 'owner'}});
-            } else if (access === "user") {
-                navigate('/Dashboard', {state: {usertype: 'user'}});
+            //if (userID === "admin") {
+            //    navigate('/Dashboard', {state: {usertype: 'owner'}});
+            //} else {
+            //    navigate('/Dashboard', {state: {usertype: 'user'}});
+            //}
+            // Send registration data to the backend
+            try {
+                const response = await fetch('http://localhost:3000/user/register/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ isOrg1, isOrg2, userID }),
+                });
+
+                const data = await response.json();
+                console.log('Server Response:', data);
+
+                // Redirect based on the access type
+                if (userID === 'admin') {
+                    navigate('/Dashboard', { state: { usertype: 'owner' } });
+                } else {
+                    navigate('/Dashboard', { state: { usertype: 'user' } });
+                }
+            } catch (error) {
+                console.error('Error submitting registration:', error);
             }
         }
     };
@@ -67,7 +88,7 @@ export default function Form() {
                     display: submitted ? "" : "none",
                 }}
             >
-                <h1>{access} {name} successfully registered!!</h1>
+                <h1>{userID} from {isOrg1 ? "Org 1" : "Org 2"} successfully registered!!</h1>
             </div>
         );
     };
@@ -87,56 +108,61 @@ export default function Form() {
     };
  
     return (
-        <div className="form">
-            <div>
-                <h1>User Registration</h1>
-            </div>
- 
-            {/* Calling to the methods */}
-            <div className="messages">
-                {errorMessage()}
-                {successMessage()}
-            </div>
- 
-            <form>
-                {/* Labels and inputs for form data */}
-                <label className="label">Name</label>
-                <input
-                    onChange={handleName}
-                    className="input"
-                    value={name}
-                    type="text"
-                />
- 
-                <label className="label">Email</label>
-                <input
-                    onChange={handleEmail}
-                    className="input"
-                    value={email}
-                    type="email"
-                />
- 
-                <label className="label">Password</label>
-                <input
-                    onChange={handlePassword}
-                    className="input"
-                    value={password}
-                    type="password"
-                />
-
-                <label className="label">How do you want to access the application?
-                <select value={access} onChange={handleAccess}>
-                <option value="">-- Select --</option>
-                <option value="owner">Owner</option>
-                <option value="user">User</option>
-                </select>
-                </label>
- 
-                <button onClick={handleSubmit} className="btn" type="submit">
-                    Submit
-                </button>
-            </form>
+      <div className="form">
+        <div>
+          <h1>User Registration</h1>
         </div>
+
+        {/* Calling to the methods */}
+        <div className="messages">
+          {errorMessage()}
+          {successMessage()}
+        </div>
+
+        <form>
+          {/* Labels and inputs for form data */}
+          <label className="label">Name</label>
+          <input
+            onChange={handleName}
+            className="input"
+            value={userID}
+            type="text"
+          />
+
+          <label className="label">Password</label>
+          <input
+            onChange={handlePassword}
+            className="input"
+            value={password}
+            type="password"
+          />
+          
+          <div className="select-container">
+            <label className="label">Choose your organization?</label>
+            <label className="label">
+              <input
+                type="checkbox"
+                checked={isOrg1}
+                onChange={handleOrg1Change}
+              />
+              Org 1
+            </label>
+
+            <label className="label">
+              <input
+                type="checkbox"
+                checked={isOrg2}
+                onChange={handleOrg2Change}
+              />
+              Org 2
+            </label>
+          </div>
+
+          <button onClick={handleSubmit} className="btn" type="submit">
+            Submit
+          </button>
+        </form>
+      </div>
     );
 }
 
