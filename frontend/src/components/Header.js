@@ -12,12 +12,13 @@ const Navbar = () => {
           <Typography variant='h4' align="left" component="div" sx={{ flexGrow: 1 }}>FabCoin</Typography>
 
           <Button component={NavLink} to='/' style={({ isActive }) => { return { backgroundColor: isActive ? '#094237' : '', marginRight: '50px' } }} sx={{ color: 'white', textTransform: 'none' }}>Home</Button>
-
-          <Button component={NavLink} to='/Dashboard' style={({ isActive }) => { return { backgroundColor: isActive ? '#094237' : '', marginRight: '50px' } }} sx={{ color: 'white', textTransform: 'none' }}>Dashboard</Button>
+          <Button component={NavLink} to='/Dashboard' style={({ isActive }) => { return { backgroundColor: isActive ? '#094237' : '', marginRight: '50px' } }} sx={{ color: 'white', textTransform: 'none' }}>Dashboards</Button>
+{/* 
+          <Button component={NavLink} to='/TransactionList' style={({ isActive }) => { return { backgroundColor: isActive ? '#094237' : '', marginRight: '50px' } }} sx={{ color: 'white', textTransform: 'none' }}>Transactions</Button>
 
           <Button component={NavLink} to='/FabcoinWallet' style={({ isActive }) => { return { backgroundColor: isActive ? '#094237' : '', marginRight: '50px' } }} sx={{ color: 'white', textTransform: 'none' }}>Wallet</Button>
 
-          <Button component={NavLink} to='/FabcoinTransaction' style={({ isActive }) => { return { backgroundColor: isActive ? '#094237' : '', marginRight: '50px' } }} sx={{ color: 'white', textTransform: 'none' }}>Spend</Button>
+          <Button component={NavLink} to='/FabcoinTransaction' style={({ isActive }) => { return { backgroundColor: isActive ? '#094237' : '', marginRight: '50px' } }} sx={{ color: 'white', textTransform: 'none' }}>Spend</Button> */}
 
           <Button component={NavLink} to='/Registration' style={({ isActive }) => { return { backgroundColor: isActive ? '#094237' : '', marginRight: '50px' } }} sx={{ color: 'white', textTransform: 'none' }}>Login/Register</Button>
 

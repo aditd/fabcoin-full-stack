@@ -47,8 +47,8 @@ class fabcoin extends Contract {
         console.log(`Minted ${amount} to ${minter}`);
 
         console.log(`${JSON.stringify(utxo)}`);
-        users.push(minter)
-        minters.push(minter)
+        // users.push(minter)
+        // minters.push(minter)
         return JSON.stringify(utxo)
     }
 
@@ -199,21 +199,23 @@ class fabcoin extends Contract {
         return caller
     }
 
+
     async getClientUTXOs(ctx) {
         let cid = new ClientIdentity(ctx.stub);
         const caller = cid.getID();
-        const clientMSPID = ctx.clientIdentity.getMSPID();
-
-
+        // get the student id[]
         const allResults = [];
-        const iterator = ctx.stub.getStateByPartialCompositeKey("utxo", [caller]);
+        // range query with empty string for startKey and endKey does an open-ended query of all assets in the chaincode namespace.
+        const iterator = await ctx.stub.getStateByRange('', '');
         let result = await iterator.next();
-
         while (!result.done) {
             const strValue = Buffer.from(result.value.value.toString()).toString('utf8');
             let record;
             try {
                 record = JSON.parse(strValue);
+                if(!(record.Owner===caller)){
+                    continue
+                }
             } catch (err) {
                 console.log(err);
                 record = strValue;
@@ -221,8 +223,6 @@ class fabcoin extends Contract {
             allResults.push(record);
             result = await iterator.next();
         }
-        console.log(`The caller of getClientUTXOs is the userID:${caller}`)
-
         return JSON.stringify(allResults);
     }
 
@@ -232,7 +232,7 @@ class fabcoin extends Contract {
         const clientMSPID = cid.getMSPID();
         // Check if the user already exists
         if (users.includes(caller)) {
-            throw new Error(`User with ID ${caller} already exists`);
+            return `User with ID ${caller} already exists`;
         }else {
             // Add the new user
             users.push(caller);

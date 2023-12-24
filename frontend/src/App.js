@@ -5,10 +5,12 @@ import Home from './components/Home'
 import Layout from './components/Layout'
 //import Navbar from './components/Header'
 import FabcoinWallet from './components/FabcoinWallet';
-import FabcoinTransaction from './components/FabcoinTransaction';
+//import FabcoinTransaction from './components/FabcoinTransaction';
+import FabcoinTransaction from './components/spend'
 import Registration from "./components/Registration"
 import Dashboard from './components/Dashboard'
-//import TransactionList from './components/TransactionList';
+import MintToken from './components/MintToken';
+import TransactionList from './components/TransactionList';
 function App() {
   return (
     <> 
@@ -18,10 +20,11 @@ function App() {
           <Route path="/" element={<Layout />}>
           <Route index element={<Home />}/>
           <Route exact path="/Dashboard" element={<Dashboard />}/>
-          <Route exact path="/FabcoinWallet" element={<FabcoinWallet/>} />
-          <Route exact path="/Fabcointransaction" element={<FabcoinTransaction/>} />
+          {/* <Route exact path="/FabcoinWallet" element={<FabcoinWallet/>} />
+          <Route exact path="/FabcoinTransaction" element={<FabcoinTransaction/>} /> */}
           <Route exact path="/Registration" element={<Registration />}/>
-          
+          {/* <Route exact path="/MintToken" element={<MintToken />}/>
+          <Route exact path="/TransactionList" element={<TransactionList />}/> */}
           </Route>
         </Routes>
       </Router>
@@ -32,7 +35,6 @@ function App() {
 
 
 export default App;
-//<Route exact path="/TransactionList" element={<TransactionList />}/>
 //<Registration/>
 //<FabcoinWallet />
 //<FabcoinTransaction />

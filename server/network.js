@@ -88,7 +88,7 @@ exports.invoke = async (networkObj, ...funcAndArgs) => {
         const response = await networkObj.contract.submitTransaction(...funcAndArgsStrings);
         console.log(`Transaction ${funcAndArgs} has been submitted: ${response.toString()}`);
 
-        return JSON.parse(response.toString());
+        return { status: 200, result: JSON.parse(response.toString()) };
     } catch (err) {
         console.error(`Failed to submit transaction: ${err}`);
         return { status: 500, error: err.toString() };

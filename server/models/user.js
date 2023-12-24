@@ -36,10 +36,10 @@ exports.registerUser = async (isOrg1, isOrg2, isMinter, userID) => {
     const networkObj = await network.connect(isOrg1, isOrg2, isMinter, userID);
     let contractRes;
     contractRes = await network.invoke(networkObj, 'registerUser');
-    const error = networkObj.error || contractRes.error;
-    if (error) {
-        const status = networkObj.status || contractRes.status;
-        return status, error;
-    }
-    return 200, 'Success', contractRes;
+    // const error = networkObj.error || contractRes.error;
+    // if (error) {
+    //     const status = networkObj.status || contractRes.status;
+    //     return status, error;
+    // }
+    return {status: 200, data:'Success'};
 }

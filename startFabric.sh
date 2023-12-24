@@ -23,6 +23,7 @@ fi
 
 # clean out any old identites in the wallets
 rm -rf javascript/wallet/*
+rm -rf server/wallet/*
 
 # launch network; create channel and join peer to channel
 pushd ../test-network

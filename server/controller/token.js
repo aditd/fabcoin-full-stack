@@ -44,12 +44,12 @@ exports.getAllUTXOs = async (req, res) => {
 exports.getClientUTXOs = async (req, res) => {
     try {
         const { isOrg1, isOrg2, isMinter, userID } = req.body;
-        const userid = req.params.userid;
+        // const userid = req.params.userid;
 
         if (!userID) {
             return res.status(400).send({ message: 'Missing required parameters' });
         }
-        const result = await tokenModel.getClientUTXOs(isOrg1, isOrg2, isMinter, userid);
+        const result = await tokenModel.getClientUTXOs(isOrg1, isOrg2, isMinter, userID);
         res.status(result.status).send(result);
     } catch (error) {
         res.status(500).send({ message: 'Server error', error: error.message });

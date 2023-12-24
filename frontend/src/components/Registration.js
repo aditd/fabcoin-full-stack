@@ -2,141 +2,121 @@ import React from 'react';
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 //import Dashboard from './Dashboard';
- 
+import axios from 'axios';
+
+
 export default function Form() {
     const navigate = useNavigate();
     // States for registration
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [access, setAccess] = useState("");
+    // const [userID, setName] = useState("");
+    // const [password, setPassword] = useState("");
+    // const [isOrg1, setIsOrg1] = useState(false);
+    // const [isOrg2, setIsOrg2] = useState(false);
+    const [name, setName] = useState('');
+    const [organization, setOrganization] = useState('');
+
+    // // // States for checking the errors
+    // const [submitted, setSubmitted] = useState(false);
+    // const [error, setError] = useState(false);
  
-    // States for checking the errors
-    const [submitted, setSubmitted] = useState(false);
-    const [error, setError] = useState(false);
- 
-    // Handling the name change
-    const handleName = (e) => {
-        setName(e.target.value);
-        setSubmitted(false);
-    };
- 
-    // Handling the email change
-    const handleEmail = (e) => {
-        setEmail(e.target.value);
-        setSubmitted(false);
-    };
- 
-    // Handling the password change
-    const handlePassword = (e) => {
-        setPassword(e.target.value);
-        setSubmitted(false);
-    };
   
-    // Handling the access change
-    const handleAccess = (e) => {
-        setAccess(e.target.value);
-        setSubmitted(false);
-    };
 
     // Handling the form submission
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (name === "" || email === "" || password === ""|| access === "") {
-            setError(true);
-        } 
-        else{
-            setSubmitted(true);
-            setError(false);
-            // Redirect based on the access type
-            if (access === "owner") {
-                navigate('/Dashboard', {state: {usertype: 'owner'}});
-            } else if (access === "user") {
-                navigate('/Dashboard', {state: {usertype: 'user'}});
-            }
+    const handleSubmit = async(e) => {
+      e.preventDefault();
+
+        const isOrg1 = organization === 'Org1';
+        const isOrg2 = organization === 'Org2';
+
+        
+        const response = await axios.post('http://localhost:3000/user/register', {
+            isOrg1:true,
+            isOrg2:false,
+            isMinter: false, // Assuming this is a fixed value
+            userID: name
+        });
+        // console.log('Registration Success:', response.data);
+
+        if (name === 'admin') {
+            navigate('/Dashboard', { state: { username: name, usertype: 'owner' } });
+        } else {
+            navigate('/Dashboard', { state: { username: name, usertype: 'user' } });
         }
+            // Handle success (e.g., display a success message or redirect)
+        
+       
     };
  
 
-    // Showing success message
-    const successMessage = () => {
-        return (
-            <div
-                className="success"
-                style={{
-                    display: submitted ? "" : "none",
-                }}
-            >
-                <h1>{access} {name} successfully registered!!</h1>
-            </div>
-        );
-    };
+    // // Showing success message
+    // const successMessage = () => {
+    //   const isOrg1 = organization === 'Org1';
+    //   const isOrg2 = organization === 'Org2';
+    //     return (
+    //         <div
+    //             className="success"
+    //             style={{
+    //                 display: submitted ? "" : "none",
+    //             }}
+    //         >
+    //             <h1>{name} from {isOrg1 ? "Org 1" : "Org 2"} successfully registered!!</h1>
+    //         </div>
+    //     );
+    // };
  
-    // Showing error message if error is true
-    const errorMessage = () => {
-        return (
-            <div
-                className="error"
-                style={{
-                    display: error ? "" : "none",
-                }}
-            >
-                <h1>Please enter all the fields</h1>
-            </div>
-        );
-    };
+    // // // Showing error message if error is true
+    // const errorMessage = () => {
+    //     const isOrg1 = organization === 'Org1';
+    //     const isOrg2 = organization === 'Org2';
+    //     return (
+    //         <div
+    //             className="error"
+    //             style={{
+    //                 display: error ? "" : "none",
+    //             }}
+    //         >
+    //             <h1>Please enter all the fields</h1>
+    //         </div>
+    //     );
+    // };
  
     return (
-        <div className="form">
-            <div>
-                <h1>User Registration</h1>
-            </div>
- 
-            {/* Calling to the methods */}
-            <div className="messages">
-                {errorMessage()}
-                {successMessage()}
-            </div>
- 
-            <form>
-                {/* Labels and inputs for form data */}
-                <label className="label">Name</label>
-                <input
-                    onChange={handleName}
+      <div className="form">
+        <div>
+          <h1>User Registration</h1>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          {/* Labels and inputs for form data */}
+          <label className="label">Name</label>
+          <input
+                    type="text"
+                    id="name"
                     className="input"
                     value={name}
-                    type="text"
+                    onChange={(e) => setName(e.target.value)}
                 />
- 
-                <label className="label">Email</label>
-                <input
-                    onChange={handleEmail}
-                    className="input"
-                    value={email}
-                    type="email"
-                />
- 
-                <label className="label">Password</label>
-                <input
-                    onChange={handlePassword}
-                    className="input"
-                    value={password}
-                    type="password"
-                />
+         
+          
+          <div className="select-container">
+          <label htmlFor="organization">Organization:</label>
+              <select
+                  id="organization"
+                  value={organization}
+                  onChange={(e) => setOrganization(e.target.value)}
+              >
+                  <option value="">Select Organization</option>
+                  <option value="Org1">Org1</option>
+                  <option value="Org2">Org2</option>
+              </select>
+            
+          </div>
 
-                <label className="label">How do you want to access the application?
-                <select value={access} onChange={handleAccess}>
-                <option value="">-- Select --</option>
-                <option value="owner">Owner</option>
-                <option value="user">User</option>
-                </select>
-                </label>
- 
-                <button onClick={handleSubmit} className="btn" type="submit">
-                    Submit
-                </button>
-            </form>
-        </div>
+          <button className="btn" type="submit">
+            Submit
+          </button>
+        </form>
+      </div>
     );
 }
 
